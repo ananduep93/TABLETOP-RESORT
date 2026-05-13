@@ -59,6 +59,20 @@ const initThree = () => {
         renderer.render(scene, camera);
     };
 
+    // 2. Scroll Parallax for Particles
+    ScrollTrigger.create({
+        trigger: "body",
+        start: "top top",
+        end: "bottom bottom",
+        onUpdate: (self) => {
+            gsap.to(particlesMesh.position, {
+                y: self.progress * 3,
+                duration: 0.5,
+                ease: "power1.out"
+            });
+        }
+    });
+
     animate();
 
     window.addEventListener('resize', () => {
@@ -82,24 +96,46 @@ const initGSAP = () => {
         }
     });
 
-    // Hero Content Mouse Parallax
-    const heroContent = document.querySelector('.hero-content');
-    if (heroContent) {
+    // Universal Mouse Parallax Engine
+    const parallaxElements = document.querySelectorAll('[data-mouse-parallax]');
+    if (parallaxElements.length > 0) {
         document.addEventListener('mousemove', (e) => {
-            const x = (window.innerWidth / 2 - e.pageX) / 30;
-            const y = (window.innerHeight / 2 - e.pageY) / 30;
-            
-            gsap.to(heroContent, {
-                duration: 1,
-                x: x,
-                y: y,
-                ease: "power2.out"
+            const { clientX, clientY } = e;
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            parallaxElements.forEach(el => {
+                const speed = parseFloat(el.getAttribute('data-mouse-parallax')) || 30;
+                const x = (centerX - clientX) / speed;
+                const y = (centerY - clientY) / speed;
+
+                gsap.to(el, {
+                    duration: 1.2,
+                    x: x,
+                    y: y,
+                    ease: "power2.out"
+                });
             });
         });
     }
 
-    // Parallax Effect for Images
-    gsap.utils.toArray('section img').forEach(img => {
+    // Universal Scroll Parallax Engine
+    gsap.utils.toArray('[data-scroll-parallax]').forEach(el => {
+        const speed = parseFloat(el.getAttribute('data-scroll-parallax')) || 100;
+        gsap.to(el, {
+            y: speed,
+            ease: "none",
+            scrollTrigger: {
+                trigger: el,
+                start: "top bottom",
+                end: "bottom top",
+                scrub: true
+            }
+        });
+    });
+
+    // Parallax Effect for Images (Specific)
+    gsap.utils.toArray('section img:not([data-scroll-parallax])').forEach(img => {
         gsap.to(img, {
             y: -50,
             ease: "none",
@@ -202,9 +238,28 @@ const initUI = () => {
     }
 };
 
+// 4. High-Performance Mouse Glow (Spotlight)
+const initMouseGlow = () => {
+    const glow = document.querySelector('.mouse-glow');
+    if (!glow) return;
+
+    window.addEventListener('mousemove', (e) => {
+        const { clientX, clientY } = e;
+        
+        // Use CSS variables for hardware-accelerated performance
+        glow.style.setProperty('--mouse-x', `${clientX}px`);
+        glow.style.setProperty('--mouse-y', `${clientY}px`);
+    });
+
+    // Fade in/out when entering/leaving window
+    document.addEventListener('mouseenter', () => glow.style.opacity = '1');
+    document.addEventListener('mouseleave', () => glow.style.opacity = '0');
+};
+
 // Initialize All
 document.addEventListener('DOMContentLoaded', () => {
     initThree();
     initGSAP();
     initUI();
+    initMouseGlow();
 });

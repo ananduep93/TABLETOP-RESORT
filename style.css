@@ -501,3 +501,28 @@ section {
     section { padding: 60px 5%; }
     .btn-lux { padding: 14px 20px; }
 }
+
+/* Mouse Glow Background Effect (High Performance) */
+.mouse-glow {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(
+        600px circle at var(--mouse-x) var(--mouse-y),
+        rgba(166, 189, 143, 0.15),
+        transparent 80%
+    );
+    transition: opacity 0.5s ease;
+}
+
+body {
+    cursor: auto !important;
+}
+
+a, button, .btn-lux, .fab, .hamburger {
+    cursor: pointer !important;
+}
