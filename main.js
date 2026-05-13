@@ -1,9 +1,7 @@
-/**
- * Tabletop Resort - Agency Grade Experience Engine
- * Implements: Three.js, GSAP, AOS, Swiper
- */
-
 // 1. Three.js Immersive Background (Luxury Particle Flow)
+let mouseX = 0;
+let mouseY = 0;
+
 const initThree = () => {
     const container = document.getElementById('hero-canvas');
     if (!container) return;
@@ -13,12 +11,12 @@ const initThree = () => {
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
     // Particle Setup
     const particlesGeometry = new THREE.BufferGeometry();
-    const particlesCount = 1500;
+    const particlesCount = 2000;
     const posArray = new Float32Array(particlesCount * 3);
 
     for(let i = 0; i < particlesCount * 3; i++) {
@@ -30,7 +28,8 @@ const initThree = () => {
         size: 0.005,
         color: 0xA6BD8F, // Sage Green
         transparent: true,
-        opacity: 0.4
+        opacity: 0.6,
+        blending: THREE.AdditiveBlending
     });
 
     const particlesMesh = new THREE.Points(particlesGeometry, material);
@@ -38,10 +37,25 @@ const initThree = () => {
 
     camera.position.z = 3;
 
+    // Mouse Tracking
+    document.addEventListener('mousemove', (event) => {
+        mouseX = (event.clientX / window.innerWidth) - 0.5;
+        mouseY = (event.clientY / window.innerHeight) - 0.5;
+    });
+
     const animate = () => {
         requestAnimationFrame(animate);
-        particlesMesh.rotation.y += 0.0005;
-        particlesMesh.rotation.x += 0.0002;
+        
+        // Gentle auto-rotation
+        particlesMesh.rotation.y += 0.001;
+        
+        // Mouse-based movement (Parallax)
+        const targetRotationX = mouseY * 0.5;
+        const targetRotationY = mouseX * 0.5;
+        
+        particlesMesh.rotation.x += 0.05 * (targetRotationX - particlesMesh.rotation.x);
+        particlesMesh.rotation.y += 0.05 * (targetRotationY - particlesMesh.rotation.y);
+        
         renderer.render(scene, camera);
     };
 
@@ -68,13 +82,31 @@ const initGSAP = () => {
         }
     });
 
+    // Hero Content Mouse Parallax
+    const heroContent = document.querySelector('.hero-content');
+    if (heroContent) {
+        document.addEventListener('mousemove', (e) => {
+            const x = (window.innerWidth / 2 - e.pageX) / 30;
+            const y = (window.innerHeight / 2 - e.pageY) / 30;
+            
+            gsap.to(heroContent, {
+                duration: 1,
+                x: x,
+                y: y,
+                ease: "power2.out"
+            });
+        });
+    }
+
     // Parallax Effect for Images
     gsap.utils.toArray('section img').forEach(img => {
         gsap.to(img, {
-            y: -30,
+            y: -50,
             ease: "none",
             scrollTrigger: {
                 trigger: img,
+                start: "top bottom",
+                end: "bottom top",
                 scrub: true
             }
         });
